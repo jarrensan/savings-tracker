@@ -285,11 +285,11 @@ flowchart LR
 * [x] Add `Dockerfile` for both apps and root `docker-compose.yml`.
 
 ### 🟩 Phase 1: Domain Core Modeling (`apps/api/src/domain`)
-* [ ] Implement `Money` value object with arithmetic and currency safety.
-* [ ] Implement `Transaction` and `Account` entities with business invariants.
-* [ ] Implement `CashFlowCalculator` domain service (Daily, Weekly, Monthly rollups, savings rate).
-* [ ] Implement `MerchantNormalizer` domain service.
-* [ ] Write automated unit tests for domain entities and services (Vitest / Jest).
+* [x] Implement `Money` value object with arithmetic and currency safety.
+* [x] Implement `Transaction` and `Account` entities with business invariants.
+* [x] Implement `CashFlowCalculator` domain service (Daily, Weekly, Monthly rollups, savings rate).
+* [x] Implement `MerchantNormalizer` domain service.
+* [x] Write automated unit tests for domain entities and services (Vitest / Jest).
 
 ### 🟩 Phase 2: Application Layer (`apps/api/src/application`)
 * [ ] Define repository port interfaces (`ITransactionRepository`, `IAccountRepository`).
