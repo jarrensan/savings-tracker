@@ -222,7 +222,52 @@ savings-tracker/
 
 ---
 
-## 7. Phased Implementation Roadmap
+## 7. Open-Source Libraries & Technical Choices
+
+| Purpose | Selected Library | Rationale |
+| :--- | :--- | :--- |
+| **Validation & Schemas** | `zod` | Schema-first type safety (`z.infer`), runtime invariant checks, zero decorator baggage in Domain Core. |
+| **NestJS + Zod Bridge** | `nestjs-zod` | Seamlessly bridges Zod with NestJS; auto-generates Swagger/OpenAPI documentation directly from Zod schemas with `createZodDto`. |
+| **Financial Precision** | `currency.js` | Prevents floating-point math errors (`0.1 + 0.2 !== 0.3`) by executing arithmetic in integer cents internally. Used inside `Money` value object. |
+| **Timezone & Date Math** | `date-fns` + `date-fns-tz` | Guarantees deterministic Singapore Time (**SGT / Asia/Singapore - UTC+8**) date aggregation across Daily, Weekly, and Monthly charts. |
+| **Bank Statement CSV** | `papaparse` | Streaming, memory-safe CSV parsing for DBS historical statements, Standard Chartered, and IBKR files. |
+| **Frontend State & Cache**| `@tanstack/react-query` | Automatic background refetching, client-side caching, and optimistic updates. |
+| **Visualizations** | `recharts` | Composable SVG financial charts for cash flow trends and category distribution. |
+
+---
+
+## 8. Concurrency, Idempotency & Race Condition Prevention
+
+### Concurrency Risk Analysis & Architectural Decision
+* **Temporal.io Evaluation**: Evaluated Temporal for workflow orchestration and decided **against** it. Temporal requires heavy multi-server infrastructure (gRPC cluster, Cassandra/PostgreSQL persistence, Elasticsearch) which is massive overkill for a personal tracker and does not natively solve database-level concurrency.
+* **Architecture Strategy**: We achieve 100% race-condition and duplicate-write immunity using three database-level and architectural guarantees:
+
+```mermaid
+flowchart TD
+    subgraph Webhook["Webhook Delivery"]
+        Alert["DBS Transaction Alert"] -->|At-Least-Once Delivery| WebhookReq["POST /api/webhooks/dbs-alert"]
+    end
+
+    subgraph Protection["Concurrency Protections"]
+        WebhookReq -->|1. Idempotency Check| UniqueKey["reference_id UNIQUE<br>(ON CONFLICT DO NOTHING)"]
+        UniqueKey -->|2. Immutable Storage| AppendOnly["Append-Only Ledger<br>(Only INSERT, No UPDATE)"]
+        AppendOnly -->|3. Atomic Balance| AtomicSQL["Row-Lock Atomic SQL<br>UPDATE balance = balance + $delta"]
+    end
+```
+
+### The 3 Pillars of Concurrency Safety:
+1. **Database-Level Idempotency (`reference_id UNIQUE`)**:
+   * Every bank alert has a unique reference (Gmail `messageId` or DBS transaction ref).
+   * Ingestion uses PostgreSQL's native `ON CONFLICT (reference_id) DO NOTHING`. Even if 5 network retries hit the server at the exact same millisecond, exactly one row is inserted and duplicates are safely ignored.
+2. **Append-Only Ledger (Immutability)**:
+   * Transactions are strictly appended. An immutable append-only ledger eliminates write-write race conditions.
+3. **Atomic Balance Updates & Derived Balances**:
+   * Current account balance is computed on demand via `SELECT SUM(amount) FROM transactions WHERE account_id = $id` or updated atomically via `UPDATE accounts SET current_balance = current_balance + $delta` which places an immediate row-level write lock in PostgreSQL.
+* *(Optional future extension: If asynchronous background webhook queuing is desired, `pg-boss` will be used as a lightweight queue running directly inside the existing PostgreSQL database with zero additional servers).*
+
+---
+
+## 9. Phased Implementation Roadmap
 
 ```mermaid
 flowchart LR
