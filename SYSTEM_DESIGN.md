@@ -234,10 +234,10 @@ flowchart LR
 ```
 
 ### 🟩 Phase 0: Monorepo & Docker Setup
-* [ ] Restructure repository into `apps/api` and `apps/web`.
-* [ ] Initialize NestJS in `apps/api` and move React into `apps/web`.
-* [ ] Configure root `package.json` with npm workspaces.
-* [ ] Add `Dockerfile` for both apps and root `docker-compose.yml`.
+* [x] Restructure repository into `apps/api` and `apps/web`.
+* [x] Initialize NestJS in `apps/api` and move React into `apps/web`.
+* [x] Configure root `package.json` with npm workspaces.
+* [x] Add `Dockerfile` for both apps and root `docker-compose.yml`.
 
 ### 🟩 Phase 1: Domain Core Modeling (`apps/api/src/domain`)
 * [ ] Implement `Money` value object with arithmetic and currency safety.

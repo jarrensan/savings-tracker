@@ -1,13 +1,9 @@
-import { createContext, useContext, useState } from 'react'
+import { useState } from 'react'
 import './App.css'
 
-type Theme = "light" | "dark" | "system";
-const ThemeContext = createContext<Theme>("system");
-const useGetTheme = () => useContext(ThemeContext);
 
 function App() {
   const [count, setCount] = useState(0)
-  const [theme, setTheme] = useState<Theme>('dark');
   return (
     <>
       <div>
